@@ -35,8 +35,11 @@ variable "lxd_container_name" {
 
 variable "public_key_file" {
    type        = string
-   description = "Path to the public SSH key file. Generate with: ssh-keygen -f my-key"
-   default     = "my-key.pub"  # Default as empty string indicates that only local ~/.ssh/id_rsa.pub will be added
+   description = "Path to the public SSH key file"
+   default     = "my-key.pub"
+   # you can use ~/.ssh/id_rsa.pub for local public key so you can access from
+   # local machine but better is to create new key and use it for remote access
+   # Generate with: ssh-keygen -f my-key
 }
 
 variable "created_by" {

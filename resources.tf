@@ -1,11 +1,16 @@
 resource "lxd_instance" "instance1" {
   name  = var.lxd_container_name
+  # https://cloud-images.ubuntu.com go to releases
   image = "ubuntu-daily:22.04"
   description = "created_by ${var.created_by}"
 
+
+  # for old ubuntu-daily:20.04 use user.user-data instead cloud-init.user-data
+  # check the content with lxc shell ${var.lxd_container_name} and
+  # cat /var/lib/cloud/instance/cloud-config.txt
   config = {
     "boot.autostart" = true
-    "cloud-init.user-data" = <<-EOF
+    "user.user-data" = <<-EOF
 #cloud-config
 users:
   - name: ubuntu
@@ -13,7 +18,7 @@ users:
     groups: sudo
     ssh_authorized_keys:
       - ${file("~/.ssh/id_rsa.pub")}
-      - ${fileexists(var.public_key_file) ? file(var.public_key_file) : ""}
+      - ${file(var.public_key_file)}
 package_update: true
 packages:
   - git
@@ -22,7 +27,7 @@ EOF
   }
 
   limits = {
-    cpu = 2
+    # cpu = 2
   }
 
   provisioner "local-exec" {
