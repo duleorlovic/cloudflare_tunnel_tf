@@ -33,6 +33,11 @@ variable "lxd_container_name" {
   description   = "Name of the container"
 }
 
+variable "lxd_machine_name" {
+  type          = string
+  description   = "Hostname of the lxd machine"
+}
+
 variable "public_key_file" {
    type        = string
    description = "Path to the public SSH key file"

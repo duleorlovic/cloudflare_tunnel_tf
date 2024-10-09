@@ -7,10 +7,33 @@
     - ./tf_ansible_vars_file.yml
   # Execute the following commands on the VM.
   tasks:
-    - name: Download the cloudflared Linux package.
-      shell: wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-    - name: Depackage cloudflared.
-      shell: sudo dpkg -i cloudflared-linux-amd64.deb
+    - name: Add Cloudflare GPG key
+      apt_key:
+        url: https://pkg.cloudflare.com/cloudflare-main.gpg
+        state: present
+
+    - name: Add Cloudflare apt repository
+      apt_repository:
+        repo: "deb http://pkg.cloudflare.com/ cloudflare-main main"
+        state: present
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install cloudflared
+      apt:
+        name: cloudflared
+        state: present
+
+    - name: Verify cloudflared installation
+      command: cloudflared --version
+      register: result
+      changed_when: false
+
+    - name: Print cloudflared version
+      debug:
+        msg: "{{ result.stdout }}"
     - name: Create a cloudflared service directory.
       shell: mkdir -p /etc/cloudflared/
     - name: Create the config file for cloudflared and define the ingress rules for the tunnel.

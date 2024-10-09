@@ -3,35 +3,55 @@
 Based on
 https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/deploy-tunnels/deployment-guides/ansible/
 
+Install terraform, lxd and ansible
+```
+# https://developer.hashicorp.com/terraform/install
+brew tap hashicorp/tap
+brew install hashicorp/tap/terraform
+
+# https://documentation.ubuntu.com/lxd/en/latest/tutorial/first_steps/
+sudo snap install lxd
+lxd init --minimal
+
+# https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html
+```
+
 On LXC machine create a folder
 ```
 ssh lxd-mashine
 mkdir lxc
 cd lxc
 # clone under different name
-git clone git@github.com:duleorlovic/cloudflare_tunnel_tf.git my-app
-cd my-app_cloudflared_tunnel_tf
+git clone git@github.com:duleorlovic/cloudflare_tunnel_tf.git my-app_cloudflare_tunnel_tf
+cd my-app_cloudflare_tunnel_tf
 ```
 
 Create `terraform.tfvars`
 ```
 # terraform.tfvars
 # https://developers.cloudflare.com/fundamentals/api/get-started/create-token/ with Cloudflare Tunnel and DNS permissions.
-# My Profile > Api Tokens > Permissions >
+# My Profile > Api Tokens > Create Token > Create Custom Token
+# Name >
+#  my-app@EDIT-THIS-computer-name
+# Permissions >
 #   Account: Cloudflare Tunnel: Edit
 #   Zone: DNS: Edit
 # you can filter limit specific resources if needed
+# copy API token and put to EDIT-THIS-api-token
 cloudflare_zone           = "trk.in.rs"
-cloudflare_zone_id        = "asd..."
-cloudflare_account_id     = "asd..."
-cloudflare_email          = "email@..."
-cloudflare_token          = "asd..."
+# find zone id when you go websites and click on your domain and scroll down
+cloudflare_zone_id        = "EDIT-THIS-zone-id"
+# find account id in url eg https://dash.cloudflare.com/123-this-is-account-id
+cloudflare_account_id     = "EDIT-THIS-account-id"
+cloudflare_email          = "EDIT-THIS-email@example.com"
+cloudflare_token          = "EDIT-THIS-api-token"
 
 # this is also used for dns and tunnel ingress hostname so use only alphanumeric
 # and hyphens, for my-app it will create two entries:
 # my-app.trk.in.rs
 # ssh-my-app.trk.in.rs
 lxd_container_name        = "my-app"
+lxd_machine_name          = "EDIT-THIS-computer-name"
 ```
 
 Run terraform
@@ -70,7 +90,7 @@ my-key.pub
 HERE_DOC
 
 # download keys `my-key` and `my-key.pub`
-scp lxd-mashine:lxc/my-app_cloudflared_tunnel_tf/my-key*  .
+scp lxd-mashine:lxc/my-app_cloudflare_tunnel_tf/my-key*  .
 
 ssh-add my-key
 ```

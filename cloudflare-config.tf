@@ -8,7 +8,7 @@ resource "random_password" "tunnel_secret" {
 # Creates a new locally-managed tunnel for the VM.
 resource "cloudflare_tunnel" "auto_tunnel" {
   account_id = var.cloudflare_account_id
-  name       = var.lxd_container_name
+  name       = "${var.lxd_container_name}@${var.lxd_machine_name}"
   secret     = base64sha256(random_password.tunnel_secret.result)
 }
 
