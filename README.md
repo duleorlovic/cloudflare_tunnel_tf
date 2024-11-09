@@ -32,7 +32,7 @@ Create `terraform.tfvars`
 # https://developers.cloudflare.com/fundamentals/api/get-started/create-token/ with Cloudflare Tunnel and DNS permissions.
 # My Profile > Api Tokens > Create Token > Create Custom Token
 # Name >
-#  my-app@EDIT-THIS-computer-name
+#  EDIT-THIS-computer-name
 # Permissions >
 #   Account: Cloudflare Tunnel: Edit
 #   Zone: DNS: Edit
@@ -60,8 +60,8 @@ terraform init
 
 ssh-keygen -f my-key
 
-TF_VAR_created_by="$(whoami)@$(hostname):$(pwd)" terraform plan
-TF_VAR_created_by="$(whoami)@$(hostname):$(pwd)" terraform apply -auto-approve
+terraform plan
+terraform apply -auto-approve
 ```
 
 Delete machine

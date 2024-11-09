@@ -2,7 +2,7 @@ resource "lxd_instance" "instance1" {
   name  = var.lxd_container_name
   # https://cloud-images.ubuntu.com go to releases
   image = "ubuntu-daily:22.04"
-  description = "created_by ${var.created_by}"
+  description = "~/lxc/ on  ${var.lxd_machine_name}"
 
 
   # for old ubuntu-daily:20.04 use user.user-data instead cloud-init.user-data
@@ -14,6 +14,7 @@ resource "lxd_instance" "instance1" {
 #cloud-config
 users:
   - name: ubuntu
+    shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
     groups: sudo
     ssh_authorized_keys:
