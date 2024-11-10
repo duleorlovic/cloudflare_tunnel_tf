@@ -51,14 +51,22 @@ cloudflare_token          = "EDIT-THIS-api-token"
 # my-app.trk.in.rs
 # ssh-my-app.trk.in.rs
 lxd_container_name        = "my-app"
+
+# this is used for tunnel name and container description
 lxd_machine_name          = "EDIT-THIS-computer-name"
+
+# this is generated with ssh-keygen -f my-app-key
+public_key_file           = "my-app-key"
+
+# if present, it will be added to the host .ssh/authorized_keys
+additional_public_key_file           = "some-id-key.pub"
 ```
 
 Run terraform
 ```
 terraform init
 
-ssh-keygen -f my-key
+ssh-keygen -f my-app-key
 
 terraform plan
 terraform apply -auto-approve
@@ -92,7 +100,7 @@ HERE_DOC
 # download keys `my-key` and `my-key.pub`
 scp lxd-mashine:lxc/my-app_cloudflare_tunnel_tf/my-key*  .
 
-ssh-add my-key
+ssh-add my-app-key
 ```
 
 and connect with
@@ -125,13 +133,22 @@ ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu  -i 10.89.228.210, pl
 ssh ubuntu@"$(get_container_ip my-app)" cat .ssh/authorized_keys
 ```
 
-Debug tunnel with
+Debug cloudflare tunnel with
 ```
 lxc shell my-app
+
+cat /etc/cloudflared/*
+
 service cloudflared start
+
 systemctl status cloudflared
 tail /var/log/cloudflared.log
+# same as:
+journalctl -u cloudflared.service
+
+cloudflared tunnel info my-app
 ```
+
 Debug ansible with
 ```
 terraform output ansible_playbook_command

@@ -11,7 +11,9 @@
       shell: wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
     - name: Depackage cloudflared.
       shell: sudo dpkg -i cloudflared-linux-amd64.deb
-    # repo is OS version specific so we do not use it
+    # When I try to install with package manager than  E:The repository 'http://pkg.cloudflare.com cloudflare-main Release' does not have a Release file.
+    # https://pkg.cloudflare.com/index.html explain that we need to update url
+    # so probably their repo is OS version specific so we do not use it
     # - name: Add Cloudflare GPG key
     #   apt_key:
     #     url: https://pkg.cloudflare.com/cloudflare-main.gpg
@@ -34,6 +36,24 @@
     # - name: Print cloudflared version
     #   debug:
     #     msg: "{{ result.stdout }}"
+
+    # https://github.com/cloudflare/cloudflared/issues/1109
+    # cat /var/log/cloudflared shows the error
+    # {"level":"warn","error":"Group ID 0 is not between ping group 65534 to 65534","time":"2024-10-12T06:58:49Z","message":"The user running cloudflared process has a GID (group ID) that is not within ping_group_range. You might need to add that user to a group within that range, or instead update the range to encompass a group the user is already in by modifying /proc/sys/net/ipv4/ping_group_range. Otherwise cloudflared will not be able to ping this network"}
+    # {"level":"warn","error":"cannot create ICMPv4 proxy: Group ID 0 is not between ping group 65534 to 65534 nor ICMPv6 proxy: socket: permission denied","time":"2024-10-12T06:58:49Z","message":"ICMP proxy feature is disabled"}
+    - name: Set the ping_group_range
+      sysctl:
+        name: net.ipv4.ping_group_range
+        value: "0 65534"
+        state: present
+        sysctl_set: yes  # Ensure it's set immediately
+        reload: yes  # Reload sysctl configuration to apply changes
+    - name: Persist the sysctl change
+      lineinfile:
+        path: /etc/sysctl.conf
+        regexp: '^net.ipv4.ping_group_range'
+        line: 'net.ipv4.ping_group_range = 0 65534'
+
     - name: Create a cloudflared service directory.
       shell: mkdir -p /etc/cloudflared/
     - name: Create the config file for cloudflared and define the ingress rules for the tunnel.
@@ -45,9 +65,9 @@
           logfile: /var/log/cloudflared.log
           loglevel: info
           ingress:
-            - hostname: "ssh-{{ tunnel_name }}.{{ zone }}"
+            - hostname: "ssh-{{ lxd_container_name }}.{{ zone }}"
               service: ssh://localhost:22
-            - hostname: "{{ tunnel_name }}.{{ zone }}"
+            - hostname: "{{ lxd_container_name }}.{{ zone }}"
               service: http://localhost:80
             - service: http_status:404
     - name: Create the tunnel credentials file for cloudflared.

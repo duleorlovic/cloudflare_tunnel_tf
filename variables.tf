@@ -38,11 +38,12 @@ variable "lxd_machine_name" {
   description   = "Hostname of the lxd machine"
 }
 
-variable "public_key_file" {
+variable "default_public_key_file" {
    type        = string
-   description = "Path to the public SSH key file"
-   default     = "my-key.pub"
-   # you can use ~/.ssh/id_rsa.pub for local public key so you can access from
-   # local machine but better is to create new key and use it for remote access
-   # Generate with: ssh-keygen -f my-key
+   description = "Path to the default public SSH key file. ssh-keygen -f"
+}
+
+variable "additional_public_key_file" {
+   type        = string
+   description = "Path to the additional public SSH key file. Not required"
 }
