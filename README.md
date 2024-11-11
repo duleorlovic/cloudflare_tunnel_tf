@@ -31,6 +31,10 @@ cd my-app_cloudflare_tunnel_tf
 
 Note that you can not have tunels and container with same name, so the best is
 to use EDIT-THIS-app-name instead of  my-app
+```
+# mv my-app_cloudflare_tunnel_tf EDIT-THIS-app-name_cloudflare_tunnel_tf, eg:
+mv my-app_cloudflare_tunnel_tf www.my-app.com_cloudflare_tunnel_tf
+```
 
 Create `terraform.tfvars`
 ```
@@ -52,16 +56,24 @@ cloudflare_account_id     = "EDIT-THIS-account-id"
 cloudflare_email          = "EDIT-THIS-email@example.com"
 cloudflare_token          = "EDIT-THIS-api-token"
 
-# this is also used for dns and tunnel ingress hostname so use only alphanumeric
-# and hyphens, for my-app it will create two entries:
-# my-app.trk.in.rs
-# ssh-my-app.trk.in.rs
+# LXC container name can contain only alphanumeric and hyphens
 lxd_container_name        = "my-app"
 
-# this is used for tunnel name and container description
+# Subdomain is used for dns and tunnel ingress hostname so you can also use dot
+# for example subdomain "www.my-app" will create a hostname www.my-app.trk.in.rs
+# we actually use two hostnames, one for web and one for ssh access, so for
+# subdomain "my-app" we generate two hostnames subdomain.zone ssh-subdomain.zone
+# my-app.trk.in.rs
+# ssh-my-app.trk.in.rs
+subdomain                 = "my-app"
+
+# Machine name is used for tunnel name and container description
 lxd_machine_name          = "EDIT-THIS-computer-name"
 
-# this is generated with ssh-keygen -f my-app-key
+# Ubuntu version https://cloud-images.ubuntu.com/releases/
+ubuntu_version            = "22.04"
+
+# Pub key file is generated with ssh-keygen -f my-app-key
 default_public_key_file           = "my-app-key.pub"
 
 # if present, it will be added to the host .ssh/authorized_keys

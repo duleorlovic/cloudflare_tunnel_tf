@@ -33,9 +33,19 @@ variable "lxd_container_name" {
   description   = "Name of the container"
 }
 
+variable "subdomain" {
+  type          = string
+  description   = "Name of the subdomain"
+}
+
 variable "lxd_machine_name" {
   type          = string
   description   = "Hostname of the lxd machine"
+}
+
+variable "ubuntu_version" {
+  type          = string
+  description   = "Ubuntu version"
 }
 
 variable "default_public_key_file" {

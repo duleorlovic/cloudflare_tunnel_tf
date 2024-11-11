@@ -1,7 +1,7 @@
 resource "lxd_instance" "instance1" {
   name  = var.lxd_container_name
   # https://cloud-images.ubuntu.com go to releases
-  image = "ubuntu-daily:22.04"
+  image = "ubuntu-daily:${var.ubuntu_version}"
   description = "~/lxc/ on  ${var.lxd_machine_name}"
 
   # for old ubuntu-daily:20.04 use user.user-data instead cloud-init.user-data
@@ -36,6 +36,9 @@ resource "lxd_instance" "instance1" {
         echo "Waiting for SSH to be ready..."
         sleep 0.3
       done
+      if [ -z "$SSH_AGENT_PID" ]; then
+        eval "$(ssh-agent -s)"
+      fi
       ssh-add ${replace(var.default_public_key_file, ".pub", "")}
       echo ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu  -i ${self.ipv4_address}, playbook.yml
       ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu  -i ${self.ipv4_address}, playbook.yml

@@ -5,7 +5,7 @@ resource "local_file" "tf_ansible_vars_file" {
     account: ${var.cloudflare_account_id}
     tunnel_name: ${cloudflare_tunnel.auto_tunnel.name}
     secret: ${base64sha256(random_password.tunnel_secret.result)}
-    lxd_container_name: ${var.lxd_container_name}
+    subdomain: ${var.subdomain}
     zone: ${var.cloudflare_zone}
     DOC
 
