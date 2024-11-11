@@ -19,12 +19,18 @@ lxd init --minimal
 On LXC machine create a folder
 ```
 ssh lxd-mashine
+
 mkdir lxc
 cd lxc
+
 # clone under different name
 git clone git@github.com:duleorlovic/cloudflare_tunnel_tf.git my-app_cloudflare_tunnel_tf
+
 cd my-app_cloudflare_tunnel_tf
 ```
+
+Note that you can not have tunels and container with same name, so the best is
+to use EDIT-THIS-app-name instead of  my-app
 
 Create `terraform.tfvars`
 ```
@@ -56,7 +62,7 @@ lxd_container_name        = "my-app"
 lxd_machine_name          = "EDIT-THIS-computer-name"
 
 # this is generated with ssh-keygen -f my-app-key
-public_key_file           = "my-app-key"
+default_public_key_file           = "my-app-key.pub"
 
 # if present, it will be added to the host .ssh/authorized_keys
 additional_public_key_file           = "some-id-key.pub"
@@ -66,7 +72,7 @@ Run terraform
 ```
 terraform init
 
-ssh-keygen -f my-app-key
+ssh-keygen -f my-app-key -N ""
 
 terraform plan
 terraform apply -auto-approve
