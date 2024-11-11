@@ -23,17 +23,18 @@ ssh lxd-mashine
 mkdir lxc
 cd lxc
 
-# clone under different name
-git clone git@github.com:duleorlovic/cloudflare_tunnel_tf.git my-app_cloudflare_tunnel_tf
-
-cd my-app_cloudflare_tunnel_tf
+# clone the repo
+git clone git@github.com:duleorlovic/cloudflare_tunnel_tf.git
 ```
 
 Note that you can not have tunels and container with same name, so the best is
-to use EDIT-THIS-app-name instead of  my-app
+to use EDIT-THIS-app-name instead of my-app
 ```
 # mv my-app_cloudflare_tunnel_tf EDIT-THIS-app-name_cloudflare_tunnel_tf, eg:
-mv my-app_cloudflare_tunnel_tf www.my-app.com_cloudflare_tunnel_tf
+# use different name
+mv cloudflare_tunnel_tf my-app_cloudflare_tunnel_tf
+# or you can use full domain
+mv cloudflare_tunnel_tf www.my-app.com_cloudflare_tunnel_tf
 ```
 
 Create `terraform.tfvars`
@@ -59,10 +60,11 @@ cloudflare_token          = "EDIT-THIS-api-token"
 # LXC container name can contain only alphanumeric and hyphens
 lxd_container_name        = "my-app"
 
-# Subdomain is used for dns and tunnel ingress hostname so you can also use dot
-# for example subdomain "www.my-app" will create a hostname www.my-app.trk.in.rs
-# we actually use two hostnames, one for web and one for ssh access, so for
-# subdomain "my-app" we generate two hostnames subdomain.zone ssh-subdomain.zone
+# Subdomain is used for dns and tunnel ingress hostname, should be single word
+# since cloudflare does not support sub-sub domains (ie default cert is only
+# *.zone and on dashboard you can see: This hostname is not covered by a
+# certificate.) we actually use two hostnames, one for web and one for ssh
+# access, so for subdomain "my-app" we generate also "ssh-my-app" subdomain
 # my-app.trk.in.rs
 # ssh-my-app.trk.in.rs
 subdomain                 = "my-app"
@@ -73,7 +75,7 @@ lxd_machine_name          = "EDIT-THIS-computer-name"
 # Ubuntu version https://cloud-images.ubuntu.com/releases/
 ubuntu_version            = "22.04"
 
-# Pub key file is generated with ssh-keygen -f my-app-key
+# Pub key file is generated with ssh-keygen -f my-app-key -N ""
 default_public_key_file           = "my-app-key.pub"
 
 # if present, it will be added to the host .ssh/authorized_keys
