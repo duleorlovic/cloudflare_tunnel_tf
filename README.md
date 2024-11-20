@@ -174,4 +174,11 @@ Debug ansible with
 terraform output ansible_playbook_command
 ```
 
-## Deploy app using ansible from remote machine
+## SSL on cloudflare and on service
+
+By default, cloudflare tunnel is served under https (http is automatically
+redirected to https).
+Note that certificate covers *.my-domain.com so sub-sub domains are not covered.
+(sub.my-domain.com is OK, but sub.sub.my-domain.com has invalid certificate).
+
+You can use page rules for custom rediction.
