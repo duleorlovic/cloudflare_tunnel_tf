@@ -50,6 +50,12 @@ resource "lxd_instance" "instance1" {
   ]
 }
 
+# Same names are used for CNAME in cloud-config.tf
+locals {
+  hostname_80 = var.subdomain == "" ? var.cloudflare_zone : "${var.subdomain}.${var.cloudflare_zone}"
+  hostname_22 = var.subdomain == "" ? "ssh.${var.cloudflare_zone}" : "ssh-${var.subdomain}.${var.cloudflare_zone}"
+}
+
 output "ansible_playbook_command" {
   value = <<-HERE_DOC
     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu  -i ${lxd_instance.instance1.ipv4_address}, playbook.yml
@@ -60,5 +66,26 @@ output "check_cloudflared_tunnel" {
   value = <<-HERE_DOC
     ssh-add ${replace(var.default_public_key_file, ".pub", "")}
     ssh ubuntu@${lxd_instance.instance1.ipv4_address} cloudflared tunnel info ${cloudflare_tunnel.auto_tunnel.name}
+  HERE_DOC
+}
+
+output "ssh_config_needed_for_deploy_on_development_machine" {
+  value = <<-HERE_DOC
+    # add to ~/.ssh/config
+    Host ${local.hostname_22}
+      ProxyCommand cloudflared access ssh --hostname %h
+      #
+    # or if brew is used
+    Host ${local.hostname_22}
+      ProxyCommand $(brew --prefix)/bin/cloudflared access ssh --hostname %h
+
+    # and connect with (NOTE the ssh. subdomain)
+    ssh ubuntu@${local.hostname_22}
+  HERE_DOC
+}
+
+output "ssh_from_development_machine" {
+  value = <<-HERE_DOC
+    ssh ubuntu@${local.hostname_80}
   HERE_DOC
 }

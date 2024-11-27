@@ -46,7 +46,7 @@ Create `terraform.tfvars`
 #   Zone: DNS: Edit
 # you can filter limit specific resources if needed
 # copy API token and put to EDIT-THIS-api-token
-cloudflare_zone           = "EDIT-THIS-mydomain.com
+cloudflare_zone           = "EDIT-THIS-mydomain.com"
 # find zone id when you go websites and click on your domain and scroll down
 cloudflare_zone_id        = "EDIT-THIS-zone-id"
 # find account id in url eg https://dash.cloudflare.com/123-this-is-account-id
@@ -100,7 +100,6 @@ From machine you want to ssh you need to install `brew install cloudflared` tool
 and configure ssh to use it
 ```
 # .ssh/config
-# https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/use-cases/ssh/
 Host ssh-EDIT-THIS-my-subdomain.EDIT-THIS-mydomain.com
   ProxyCommand $(brew --prefix)/bin/cloudflared access ssh --hostname %h
 ```
@@ -122,14 +121,14 @@ ssh-add my-app-key
 
 and connect with
 ```
-ssh ubuntu@ssh-my-app.EDIT-THIS-mydomain.com
+ssh ubuntu@ssh-EDIT-THIS-my-subdomain.EDIT-THIS-mydomain.com
 ```
 
 Create ansible files
 ```
 # inventory
 [default]
-ssh-my-app.EDIT-THIS-mydomain.com ansible_user=ubuntu
+ssh-EDIT-THIS-my-subdomain.EDIT-THIS-mydomain.com ansible_user=ubuntu
 
 # ansible.cfg
 [defaults]
@@ -178,4 +177,8 @@ redirected to https).
 Note that certificate covers *.my-domain.com so sub-sub domains are not covered.
 (sub.my-domain.com is OK, but sub.sub.my-domain.com has invalid certificate).
 
-You can use page rules for custom rediction.
+You can use page rules for custom redirection.
+
+# SSH
+
+TODO: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/use-cases/ssh/

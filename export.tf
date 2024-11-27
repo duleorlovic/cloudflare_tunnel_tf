@@ -5,8 +5,8 @@ resource "local_file" "tf_ansible_vars_file" {
     account: ${var.cloudflare_account_id}
     tunnel_name: ${cloudflare_tunnel.auto_tunnel.name}
     secret: ${base64sha256(random_password.tunnel_secret.result)}
-    subdomain: ${var.subdomain}
-    zone: ${var.cloudflare_zone}
+    hostname_80: ${local.hostname_80}
+    hostname_22: ${local.hostname_22}
     DOC
 
   filename = "./tf_ansible_vars_file.yml"
