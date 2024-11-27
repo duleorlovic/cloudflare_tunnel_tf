@@ -28,13 +28,10 @@ git clone git@github.com:duleorlovic/cloudflare_tunnel_tf.git
 ```
 
 Note that you can not have tunels and container with same name, so the best is
-to use EDIT-THIS-app-name instead of my-app
+to use EDIT-THIS-mydomain.com_cloudflare_tunnel_tf
 ```
-# mv my-app_cloudflare_tunnel_tf EDIT-THIS-app-name_cloudflare_tunnel_tf, eg:
-# use different name
-mv cloudflare_tunnel_tf my-app_cloudflare_tunnel_tf
-# or you can use full domain
-mv cloudflare_tunnel_tf www.my-app.com_cloudflare_tunnel_tf
+mv cloudflare_tunnel_tf EDIT-THIS-mydomain.com_cloudflare_tunnel_tf
+# for example mv cloudflare_tunnel_tf my-app.trk.in.rs_cloudflare_tunnel_tf
 ```
 
 Create `terraform.tfvars`
@@ -49,7 +46,7 @@ Create `terraform.tfvars`
 #   Zone: DNS: Edit
 # you can filter limit specific resources if needed
 # copy API token and put to EDIT-THIS-api-token
-cloudflare_zone           = "trk.in.rs"
+cloudflare_zone           = "EDIT-THIS-mydomain.com
 # find zone id when you go websites and click on your domain and scroll down
 cloudflare_zone_id        = "EDIT-THIS-zone-id"
 # find account id in url eg https://dash.cloudflare.com/123-this-is-account-id
@@ -58,16 +55,16 @@ cloudflare_email          = "EDIT-THIS-email@example.com"
 cloudflare_token          = "EDIT-THIS-api-token"
 
 # LXC container name can contain only alphanumeric and hyphens
-lxd_container_name        = "my-app"
+lxd_container_name        = "EDIT-THIS-container-name"
 
 # Subdomain is used for dns and tunnel ingress hostname, should be single word
 # since cloudflare does not support sub-sub domains (ie default cert is only
 # *.zone and on dashboard you can see: This hostname is not covered by a
 # certificate.) we actually use two hostnames, one for web and one for ssh
 # access, so for subdomain "my-app" we generate also "ssh-my-app" subdomain
-# my-app.trk.in.rs
-# ssh-my-app.trk.in.rs
-subdomain                 = "my-app"
+# my-app.EDIT-THIS-mydomain.com
+# ssh-my-app.EDIT-THIS-mydomain.com
+subdomain                 = "EDIT-THIS-my-subdomain"
 
 # Machine name is used for tunnel name and container description
 lxd_machine_name          = "EDIT-THIS-computer-name"
@@ -75,8 +72,8 @@ lxd_machine_name          = "EDIT-THIS-computer-name"
 # Ubuntu version https://cloud-images.ubuntu.com/releases/
 ubuntu_version            = "22.04"
 
-# Pub key file is generated with ssh-keygen -f my-app-key -N ""
-default_public_key_file           = "my-app-key.pub"
+# Pub key file is generated with ssh-keygen -f EDIT-THIS-container-name.key -N ""
+default_public_key_file           = "EDIT-THIS-container-name.key.pub"
 
 # if present, it will be added to the host .ssh/authorized_keys
 additional_public_key_file           = "some-id-key.pub"
@@ -86,7 +83,7 @@ Run terraform
 ```
 terraform init
 
-ssh-keygen -f my-app-key -N ""
+ssh-keygen -f EDIT-THIS-container-name.key -N ""
 
 terraform plan
 terraform apply -auto-approve
@@ -104,7 +101,7 @@ and configure ssh to use it
 ```
 # .ssh/config
 # https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/use-cases/ssh/
-Host ssh-my-app.trk.in.rs
+Host ssh-EDIT-THIS-my-subdomain.EDIT-THIS-mydomain.com
   ProxyCommand $(brew --prefix)/bin/cloudflared access ssh --hostname %h
 ```
 In your project create deploy folder
@@ -125,14 +122,14 @@ ssh-add my-app-key
 
 and connect with
 ```
-ssh ubuntu@ssh-my-app.trk.in.rs
+ssh ubuntu@ssh-my-app.EDIT-THIS-mydomain.com
 ```
 
 Create ansible files
 ```
 # inventory
 [default]
-ssh-my-app.trk.in.rs ansible_user=ubuntu
+ssh-my-app.EDIT-THIS-mydomain.com ansible_user=ubuntu
 
 # ansible.cfg
 [defaults]
