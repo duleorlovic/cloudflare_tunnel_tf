@@ -1,3 +1,6 @@
+locals {
+  additional_public_keys = fileexists(var.additional_public_key_file) ? join("\n", [for line in split("\n", file(var.additional_public_key_file)) : "    - ${line}" if trimspace(line) != ""]) : ""
+}
 resource "lxd_instance" "instance1" {
   name  = var.lxd_container_name
   # https://cloud-images.ubuntu.com go to releases
@@ -18,7 +21,7 @@ resource "lxd_instance" "instance1" {
           groups: sudo
           ssh_authorized_keys:
           - ${file(var.default_public_key_file)}
-          ${fileexists(var.additional_public_key_file) ? "- ${file(var.additional_public_key_file)}" : ""}
+          ${local.additional_public_keys}
       package_update: true
       packages:
         - git
@@ -37,9 +40,12 @@ resource "lxd_instance" "instance1" {
         sleep 0.3
       done
       if [ -z "$SSH_AGENT_PID" ]; then
+        echo "No ssh agent, starting new one..."
         eval "$(ssh-agent -s)"
       fi
+      echo ssh-add ${replace(var.default_public_key_file, ".pub", "")}
       ssh-add ${replace(var.default_public_key_file, ".pub", "")}
+      echo You should be able to connect with: ssh ubuntu@${self.ipv4_address}
       echo ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu  -i ${self.ipv4_address}, playbook.yml
       ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu  -i ${self.ipv4_address}, playbook.yml
     EOF
@@ -52,8 +58,8 @@ resource "lxd_instance" "instance1" {
 
 # Same names are used for CNAME in cloud-config.tf
 locals {
-  hostname_80 = var.subdomain == "" ? var.cloudflare_zone : "${var.subdomain}.${var.cloudflare_zone}"
-  hostname_22 = var.subdomain == "" ? "ssh.${var.cloudflare_zone}" : "ssh-${var.subdomain}.${var.cloudflare_zone}"
+  hostname_80 = var.subdomain == "" ? var.cloudflare_zone : "${var.subdomain}.${var.cloudflare_zone}" # myapp.my-domain.com
+  hostname_22 = var.subdomain == "" ? "ssh.${var.cloudflare_zone}" : "${var.subdomain}-ssh.${var.cloudflare_zone}" # myapp-ssh.my-domain.com
 }
 
 output "ansible_playbook_command" {
@@ -74,12 +80,13 @@ output "ssh_config_needed_for_deploy_on_development_machine" {
     # add to ~/.ssh/config
     Host ${local.hostname_22}
       ProxyCommand cloudflared access ssh --hostname %h
-      #
+
     # or if brew is used
     Host ${local.hostname_22}
       ProxyCommand $(brew --prefix)/bin/cloudflared access ssh --hostname %h
 
-    # and connect with (NOTE the ssh. subdomain)
+    # NOTE that you need to use subdomain that ends with -ssh.
+    # and connect with
     ssh ubuntu@${local.hostname_22}
   HERE_DOC
 }

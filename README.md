@@ -37,6 +37,14 @@ mv cloudflare_tunnel_tf EDIT-THIS-mydomain.com_cloudflare_tunnel_tf
 Create `terraform.tfvars`
 ```
 # terraform.tfvars
+# your domain on cloudflare, bare domain without subdomain for example: "my-domain.com"
+cloudflare_zone           = "EDIT-THIS-mydomain.com"
+# find zone id when you go websites and click on your domain and scroll down
+cloudflare_zone_id        = "EDIT-THIS-zone-id"
+# find account id in url eg https://dash.cloudflare.com/123-this-is-account-id
+cloudflare_account_id     = "EDIT-THIS-account-id"
+# cloudflare username email
+cloudflare_email          = "EDIT-THIS-email@example.com"
 # https://developers.cloudflare.com/fundamentals/api/get-started/create-token/ with Cloudflare Tunnel and DNS permissions.
 # My Profile > Api Tokens > Create Token > Create Custom Token
 # Name >
@@ -45,25 +53,20 @@ Create `terraform.tfvars`
 #   Account: Cloudflare Tunnel: Edit
 #   Zone: DNS: Edit
 # you can filter limit specific resources if needed
-# copy API token and put to EDIT-THIS-api-token
-cloudflare_zone           = "EDIT-THIS-mydomain.com"
-# find zone id when you go websites and click on your domain and scroll down
-cloudflare_zone_id        = "EDIT-THIS-zone-id"
-# find account id in url eg https://dash.cloudflare.com/123-this-is-account-id
-cloudflare_account_id     = "EDIT-THIS-account-id"
-cloudflare_email          = "EDIT-THIS-email@example.com"
+# copy API token and paste here
 cloudflare_token          = "EDIT-THIS-api-token"
 
-# LXC container name can contain only alphanumeric and hyphens
+# LXC container name can contain only alphanumeric and hyphens, example my-app
 lxd_container_name        = "EDIT-THIS-container-name"
 
 # Subdomain is used for dns and tunnel ingress hostname, should be single word
 # since cloudflare does not support sub-sub domains (ie default cert is only
 # *.zone and on dashboard you can see: This hostname is not covered by a
 # certificate.) we actually use two hostnames, one for web and one for ssh
-# access, so for subdomain "my-app" we generate also "ssh-my-app" subdomain
+# access, so for subdomain "my-app" we generate also "my-app-ssh" subdomain
 # my-app.EDIT-THIS-mydomain.com
-# ssh-my-app.EDIT-THIS-mydomain.com
+# my-app-ssh.EDIT-THIS-mydomain.com
+# it could be the same as lxd_container_name "my-app" but you can set to "www"
 subdomain                 = "EDIT-THIS-my-subdomain"
 
 # Machine name is used for tunnel name and container description
@@ -100,7 +103,7 @@ From machine you want to ssh you need to install `brew install cloudflared` tool
 and configure ssh to use it
 ```
 # .ssh/config
-Host ssh-EDIT-THIS-my-subdomain.EDIT-THIS-mydomain.com
+Host EDIT-THIS-my-subdomain-ssh.EDIT-THIS-mydomain.com
   ProxyCommand $(brew --prefix)/bin/cloudflared access ssh --hostname %h
 ```
 In your project create deploy folder
@@ -121,14 +124,14 @@ ssh-add my-app-key
 
 and connect with
 ```
-ssh ubuntu@ssh-EDIT-THIS-my-subdomain.EDIT-THIS-mydomain.com
+ssh ubuntu@EDIT-THIS-my-subdomain-ssh.EDIT-THIS-mydomain.com
 ```
 
 Create ansible files
 ```
 # inventory
 [default]
-ssh-EDIT-THIS-my-subdomain.EDIT-THIS-mydomain.com ansible_user=ubuntu
+EDIT-THIS-my-subdomain-ssh.EDIT-THIS-mydomain.com ansible_user=ubuntu
 
 # ansible.cfg
 [defaults]
@@ -149,6 +152,16 @@ ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu  -i 10.89.228.210, pl
 ssh ubuntu@"$(get_container_ip my-app)" cat .ssh/authorized_keys
 ```
 
+Check variables
+```
+cat tf_ansible_vars_file.yml
+```
+
+Debug ansible provision
+```
+terraform output ansible_playbook_command
+```
+
 Debug cloudflare tunnel with
 ```
 lxc shell my-app
@@ -165,9 +178,13 @@ journalctl -u cloudflared.service
 cloudflared tunnel info my-app
 ```
 
-Debug ansible with
+DNS records need some time to update (create is instant but update is not)
 ```
-terraform output ansible_playbook_command
+ping my-app.my-domain.com
+```
+if the ping works from other computs but not on your mac you can clear cache
+```
+sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 ```
 
 ## SSL on cloudflare and on service

@@ -3,7 +3,8 @@ terraform.tfvars
 terraform.tfstate
 terraform.tfstate.backup
 
-
+# do not commit your passwords
 tf_ansible_vars_file.yml
+# do not commit your keys
 my-key.pub
 my-key
