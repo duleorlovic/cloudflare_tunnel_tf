@@ -48,6 +48,12 @@ variable "ubuntu_version" {
   description   = "Ubuntu version"
 }
 
+variable "use_docker" {
+  description = "Whether to enable Docker inside lxc container"
+  type        = bool
+  default     = false
+}
+
 variable "default_public_key_file" {
    type        = string
    description = "Path to the default public SSH key file. ssh-keygen -f"

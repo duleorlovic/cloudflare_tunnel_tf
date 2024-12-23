@@ -7,27 +7,37 @@ resource "lxd_instance" "instance1" {
   image = "ubuntu-daily:${var.ubuntu_version}"
   description = "~/lxc/ on  ${var.lxd_machine_name}"
 
-  # for old ubuntu-daily:20.04 use user.user-data instead cloud-init.user-data
-  # check the content with lxc shell ${var.lxd_container_name} and
-  # cat /var/lib/cloud/instance/cloud-config.txt
-  config = {
-    "boot.autostart" = true
-    "user.user-data" = <<-HERE_DOC
-      #cloud-config
-      users:
-        - name: ubuntu
-          shell: /bin/bash
-          sudo: ALL=(ALL) NOPASSWD:ALL
-          groups: sudo
-          ssh_authorized_keys:
-          - ${file(var.default_public_key_file)}
-          ${local.additional_public_keys}
-      package_update: true
-      packages:
-        - git
-        - vim-nox
-    HERE_DOC
-  }
+  config = merge(
+    {
+      "boot.autostart" = true
+      # for old ubuntu-daily:20.04 use user.user-data instead cloud-init.user-data
+      # check the content with lxc shell ${var.lxd_container_name} and
+      # cat /var/lib/cloud/instance/cloud-config.txt
+      "user.user-data" = <<-HERE_DOC
+        #cloud-config
+        users:
+          - name: ubuntu
+            shell: /bin/bash
+            sudo: ALL=(ALL) NOPASSWD:ALL
+            groups: sudo
+            ssh_authorized_keys:
+            - ${file(var.default_public_key_file)}
+            ${local.additional_public_keys}
+        package_update: true
+        packages:
+          - git
+          - vim-nox
+      HERE_DOC
+    },
+    var.use_docker ? {
+      # https://documentation.ubuntu.com/lxd/en/latest/reference/instance_options/#instance-security:security.nesting
+      # https://ubuntu.com/tutorials/how-to-run-docker-inside-lxd-containers#2-create-lxd-container
+      "security.nesting" = true
+      "security.privileged" = true
+      "security.syscalls.intercept.mknod" = true
+      "security.syscalls.intercept.setxattr" = true
+    } : {}
+  )
 
   limits = {
     # cpu = 2

@@ -75,6 +75,12 @@ lxd_machine_name          = "EDIT-THIS-computer-name"
 # Ubuntu version https://cloud-images.ubuntu.com/releases/
 ubuntu_version            = "22.04"
 
+# Enable this is you are using docker inside lxc container
+# sample error is: error during container init: error mounting "cgroup" to rootfs
+# at "/sys/fs/cgroup": mount src=cgroup, dst=/sys/fs/cgroup, dstFd=/proc/thread-self/fd/8,
+# flags=0xf: permission denied: unknown.
+use_docker              = false
+
 # Pub key file is generated with ssh-keygen -f EDIT-THIS-container-name.key -N ""
 default_public_key_file           = "EDIT-THIS-container-name.key.pub"
 
@@ -92,7 +98,7 @@ terraform plan
 terraform apply -auto-approve
 ```
 
-Delete machine
+Delete remove machine
 ```
 terraform destroy -auto-approve
 ```
