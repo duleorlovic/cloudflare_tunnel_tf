@@ -1,5 +1,25 @@
 locals {
-  additional_public_keys = fileexists(var.additional_public_key_file) ? join("\n", [for line in split("\n", file(var.additional_public_key_file)) : "    - ${line}" if trimspace(line) != ""]) : ""
+  default_user_data = {
+    users = [ {
+      name = "ubuntu"
+      shell = "/bin/bash"
+      sudo = "ALL=(ALL) NOPASSWD:ALL"
+      groups = "sudo"
+      ssh_authorized_keys = concat(
+        [file(var.default_public_key_file)],
+        fileexists(var.additional_public_key_file) ? split("\n", file(var.additional_public_key_file)) : []
+      )
+    }]
+    package_update = true
+    packages = [
+      "git",
+      "vim-nox"
+    ]
+    runcmd = [
+      # https://docs.docker.com/engine/install/ubuntu/#install-using-the-convenience-script
+      var.use_docker ?  "curl -fsSL https://get.docker.com | sh" : ""
+    ]
+  }
 }
 resource "lxd_instance" "instance1" {
   name  = var.lxd_container_name
@@ -15,18 +35,7 @@ resource "lxd_instance" "instance1" {
       # cat /var/lib/cloud/instance/cloud-config.txt
       "user.user-data" = <<-HERE_DOC
         #cloud-config
-        users:
-          - name: ubuntu
-            shell: /bin/bash
-            sudo: ALL=(ALL) NOPASSWD:ALL
-            groups: sudo
-            ssh_authorized_keys:
-            - ${file(var.default_public_key_file)}
-            ${local.additional_public_keys}
-        package_update: true
-        packages:
-          - git
-          - vim-nox
+        ${yamlencode(local.default_user_data)}
       HERE_DOC
     },
     var.use_docker ? {
@@ -72,6 +81,10 @@ locals {
   hostname_22 = var.subdomain == "" ? "ssh.${var.cloudflare_zone}" : "${var.subdomain}-ssh.${var.cloudflare_zone}" # myapp-ssh.my-domain.com
 }
 
+output "cloud_config" {
+  value = lxd_instance.instance1.config
+}
+
 output "ansible_playbook_command" {
   value = <<-HERE_DOC
     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu  -i ${lxd_instance.instance1.ipv4_address}, playbook.yml
@@ -80,6 +93,7 @@ output "ansible_playbook_command" {
 
 output "check_cloudflared_tunnel" {
   value = <<-HERE_DOC
+    eval "$(ssh-agent -s)"
     ssh-add ${replace(var.default_public_key_file, ".pub", "")}
     ssh ubuntu@${lxd_instance.instance1.ipv4_address} cloudflared tunnel info ${cloudflare_tunnel.auto_tunnel.name}
   HERE_DOC
@@ -98,11 +112,8 @@ output "ssh_config_needed_for_deploy_on_development_machine" {
     # NOTE that you need to use subdomain that ends with -ssh.
     # and connect with
     ssh ubuntu@${local.hostname_22}
-  HERE_DOC
-}
 
-output "ssh_from_development_machine" {
-  value = <<-HERE_DOC
-    ssh ubuntu@${local.hostname_80}
+    # when you recreate provision again the server you need to remove old known_hosts
+    ssh-keygen -f ~/.ssh/known_hosts -R ${local.hostname_22}
   HERE_DOC
 }

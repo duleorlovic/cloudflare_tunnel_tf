@@ -67,6 +67,7 @@ lxd_container_name        = "EDIT-THIS-container-name"
 # my-app.EDIT-THIS-mydomain.com
 # my-app-ssh.EDIT-THIS-mydomain.com
 # it could be the same as lxd_container_name "my-app" but you can set to "www"
+# or empty subdomain "" if you serve on root domain
 subdomain                 = "EDIT-THIS-my-subdomain"
 
 # Machine name is used for tunnel name and container description
